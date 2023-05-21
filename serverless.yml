@@ -1,0 +1,21 @@
+service: aws-subastas
+frameworkVersion: '2 || 3'
+
+plugins:
+  - serverless-bundle
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  memorySize: 128
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  lambdaHashingVersion: 20201221
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi:
+          path: /
+          method: GET
