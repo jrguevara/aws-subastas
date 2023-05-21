@@ -20,6 +20,14 @@
     "webpack": "^5.83.1"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.335.0"
+    "@aws-sdk/client-dynamodb": "^3.335.0",
+    "@aws-sdk/client-s3": "^3.335.0",
+    "@aws-sdk/lib-dynamodb": "^3.335.0",
+    "@middy/core": "^4.4.2",
+    "@middy/http-error-handler": "^4.4.2",
+    "@middy/http-event-normalizer": "^4.4.2",
+    "@middy/http-json-body-parser": "^4.4.2",
+    "http-errors": "^2.0.0",
+    "uuid": "^9.0.0"
   }
 }
