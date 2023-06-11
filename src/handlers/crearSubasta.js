@@ -9,12 +9,19 @@ const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const crearSubasta = async (event, context) => {
   try {
     const subasta = event.body;
+    const now = new Date();
+    const fechaFin = new Date();
+    fechaFin.setHours(now.getHours() + 1);
 
     const newSubasta = {
       ...subasta,
       estado: "ABIERTA",
       id: uuid(),
-      fechaIng: new Date().toLocaleDateString(),
+      fechaInicio: now.toISOString(),
+      fechaFin: fechaFin.toISOString(),
+      ofertaMayor: {
+        cantidad: 0,
+      },
     };
 
     const headers = {

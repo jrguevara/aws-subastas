@@ -17,8 +17,11 @@ provider:
         - dynamodb:PutItem
         - dynamodb:Scan
         - dynamodb:GetItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
       Resource: 
         - "arn:aws:dynamodb:us-east-1:103650216262:table/SubastasTable"
+        - !Join ['/', [ arn:aws:dynamodb:us-east-1:103650216262:table/SubastasTable, 'index', 'estadoFechaFinIndex' ]]
 
 resources:
   Resources:
@@ -29,9 +32,22 @@ resources:
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
+          - AttributeName: estado
+            AttributeType: S
+          - AttributeName: fechaFin
+            AttributeType: S
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+        GlobalSecondaryIndexes:
+          - IndexName: estadoFechaFinIndex
+            KeySchema:
+              - AttributeName: estado
+                KeyType: HASH
+              - AttributeName: fechaFin
+                KeyType: RANGE
+            Projection: 
+              ProjectionType: ALL      
         BillingMode: PAY_PER_REQUEST
 
 functions:
@@ -53,6 +69,16 @@ functions:
       - httpApi:
           path: /subasta/{id}
           method: GET
+  hacerOferta:
+    handler: src/handlers/hacerOferta.handler
+    events:
+      - httpApi:
+          path: /subasta/{id}/ofertar
+          method: PATCH
+  procesarSubastas:
+    handler: src/handlers/procesarSubastas.handler
+    #events:
+      #- schedule: rate(1 minute)
 
 custom:
   bundle:

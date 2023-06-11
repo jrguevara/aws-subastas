@@ -5,16 +5,8 @@ import createError from "http-errors";
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-const obtenerSubasta = async (event, context) => {
-
+export async function obtenerSubastaPorId(id) {
     let subasta;
-    const { id } = event.pathParameters;
-    
-    const headers = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-    };
-    
     try {
         const result = await dynamo.send(new GetCommand({
             TableName: "SubastasTable",
@@ -32,6 +24,19 @@ const obtenerSubasta = async (event, context) => {
         throw new createError.NotFound(`Subasta con id: ${id} no encontrada.`);
     }
 
+    return subasta;
+}
+
+const obtenerSubasta = async (event, context) => {
+    const { id } = event.pathParameters;
+    const subasta = await obtenerSubastaPorId(id);
+
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    };
+    
     return {
         statusCode: 200,
         headers: headers,
