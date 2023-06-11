@@ -1,8 +1,11 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import commonMiddleware from "../../lib/commonMiddleware";
+import validator from "@middy/validator";
+import { transpileSchema } from '@middy/validator/transpile';
 import createError from "http-errors";
 import { obtenerSubastaPorId } from "./obtenerSubasta";
+import hacerOfertaSchema from "../../lib/schemas/hacerOfertaSchema";
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
@@ -14,7 +17,7 @@ const hacerOferta = async (event, context) => {
 
     const subasta = await obtenerSubastaPorId(id);
 
-    if (subasta.status !== 'ABIERTA') {
+    if (subasta.estado !== 'ABIERTA') {
         throw new createError.Forbidden(`La subasta con id: ${id} no está abierta.`);
     };
 
@@ -52,4 +55,8 @@ const hacerOferta = async (event, context) => {
     };
 };
 
-export const handler = commonMiddleware(hacerOferta);
+export const handler = commonMiddleware(hacerOferta).use(
+    validator({
+        eventSchema: transpileSchema(hacerOfertaSchema),
+    })
+);

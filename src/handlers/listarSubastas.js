@@ -1,17 +1,28 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import validator from "@middy/validator";
+import { transpileSchema } from '@middy/validator/transpile';
 import commonMiddleware from "../../lib/commonMiddleware";
+import listarSubastasSchema from "../../lib/schemas/listarSubastasSchema";
 import createError from "http-errors";
 
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const listarSubastas = async (event, context) => {
   try {
+    const { estado } = event.queryStringParameters;
     let subastas;
 
-    const result = await dynamo.send(new ScanCommand({
+    const params = {
       TableName: "SubastasTable",
-    }));
+      IndexName: "estadoFechaFinIndex",
+      KeyConditionExpression: 'estado = :estado',
+      ExpressionAttributeValues: {
+        ':estado': estado,
+      },
+    };
+
+    const result = await dynamo.send(new QueryCommand(params));
 
     subastas = result.Items;
 
@@ -32,4 +43,12 @@ const listarSubastas = async (event, context) => {
   }
 };
 
-export const handler = commonMiddleware(listarSubastas);
+export const handler = commonMiddleware(listarSubastas).use(
+  validator({
+      eventSchema : transpileSchema(listarSubastasSchema),
+      ajvOptions: {
+          useDefaults: true,
+          strict: false,
+      },
+  })
+);
