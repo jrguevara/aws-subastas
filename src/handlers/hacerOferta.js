@@ -10,19 +10,31 @@ import hacerOfertaSchema from "../../lib/schemas/hacerOfertaSchema";
 const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 const hacerOferta = async (event, context) => {
-
     let subastaActualizada;
     const { id } = event.pathParameters;
     const { cantidad } = event.body;
+    const { email } = event.requestContext.authorizer;
 
     const subasta = await obtenerSubastaPorId(id);
 
+    // Validacion de identidad de usuario
+    if (subasta.vendedor === email) {
+        throw new createError.Forbidden(`No puedes hacer una oferta en tu propia subasta.`);
+    };
+
+    //Validacion para evitar doble oferta
+    if (subasta.ofertaMayor.comprador === email) {
+        throw new createError.Forbidden(`Ya has hecho una oferta en esta subasta.`);
+    };
+
+    // Validacion de estado de subasta
     if (subasta.estado !== 'ABIERTA') {
         throw new createError.Forbidden(`La subasta con id: ${id} no está abierta.`);
     };
 
-    if (cantidad <= subasta.ofertaMayor.cantidad) {
-        throw new createError.Forbidden(`La oferta debe ser mayor a la oferta actual de $${subasta.ofertaMayor.cantidad}`);
+    // Validacion de cantidad de oferta
+    if (cantidad <= subasta.ofertaMayor.cantidad ) {
+        throw new createError.Forbidden(`La oferta debe ser mayor a la oferta actual de $${subasta.ofertaMayor.cantidad}.`);
     };
 
     const headers = {
@@ -34,11 +46,12 @@ const hacerOferta = async (event, context) => {
         const result = await dynamo.send(new UpdateCommand({
             TableName: "SubastasTable",
             Key: { id },
-            UpdateExpression: "SET ofertaMayor.cantidad = :cantidad",
+            UpdateExpression: 'SET ofertaMayor.cantidad = :cantidad, ofertaMayor.comprador = :comprador',
             ExpressionAttributeValues: {
-                ":cantidad": cantidad,
+                ':cantidad': cantidad,
+                ':comprador': email,
             },
-            ReturnValues: "ALL_NEW",
+            ReturnValues: 'ALL_NEW'
         }));
 
         subastaActualizada = result.Attributes;

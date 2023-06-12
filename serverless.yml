@@ -7,7 +7,7 @@ plugins:
 provider:
   name: aws
   runtime: nodejs18.x
-  memorySize: 128
+  memorySize: 256
   region: us-east-1
   stage: ${opt:stage, 'dev'}
   lambdaHashingVersion: 20201221
@@ -54,32 +54,37 @@ functions:
   crearSubasta:
     handler: src/handlers/crearSubasta.handler
     events:
-      - httpApi:
+      - http:
           path: /subasta
           method: POST
+          authorizer: ${self:custom.authorizer}
   listarSubastas:
     handler: src/handlers/listarSubastas.handler
     events:
-      - httpApi:
+      - http:
           path: /subastas
           method: GET
+          authorizer: ${self:custom.authorizer}
   obtenerSubasta:
     handler: src/handlers/obtenerSubasta.handler
     events:
-      - httpApi:
+      - http:
           path: /subasta/{id}
           method: GET
+          authorizer: ${self:custom.authorizer}
   hacerOferta:
     handler: src/handlers/hacerOferta.handler
     events:
-      - httpApi:
+      - http:
           path: /subasta/{id}/ofertar
           method: PATCH
+          authorizer: ${self:custom.authorizer}
   procesarSubastas:
     handler: src/handlers/procesarSubastas.handler
     #events:
       #- schedule: rate(1 minute)
 
 custom:
+  authorizer: arn:aws:lambda:us-east-1:103650216262:function:aws-auth-dev-auth
   bundle:
     linting: false

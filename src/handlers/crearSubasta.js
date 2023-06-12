@@ -12,6 +12,7 @@ const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const crearSubasta = async (event, context) => {
   try {
     const subasta = event.body;
+    const { email } = event.requestContext.authorizer;
     const now = new Date();
     const fechaFin = new Date();
     fechaFin.setHours(now.getHours() + 1);
@@ -25,6 +26,7 @@ const crearSubasta = async (event, context) => {
       ofertaMayor: {
         cantidad: 0,
       },
+      vendedor: email,
     };
 
     const headers = {
