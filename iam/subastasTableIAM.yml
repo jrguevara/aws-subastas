@@ -1,0 +1,11 @@
+SubastasTableIAM:
+  Effect: Allow
+  Action:
+    - dynamodb:PutItem
+    - dynamodb:Scan
+    - dynamodb:GetItem
+    - dynamodb:UpdateItem
+    - dynamodb:Query
+  Resource:
+    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/SubastasTable
+    - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/SubastasTable/index/estadoFechaFinIndex
