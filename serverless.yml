@@ -11,10 +11,13 @@ provider:
   memorySize: 256
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  environment:
+    MAIL_QUEUE_URL: ${self:custom.mailQueue.url}
   iam:
     role:
       statements:
         - ${file(./iam/subastasTableIAM.yml):SubastasTableIAM}
+        - ${file(./iam/mailQueueIAM.yml):MailQueueIAM} 
 
 resources:
   Resources:
@@ -56,5 +59,8 @@ functions:
 
 custom:
   authorizer: arn:aws:lambda:${aws:region}:${aws:accountId}:function:aws-auth-${sls:stage}-auth
+  mailQueue:
+    arn: ${cf:aws-notificaciones-${self:provider.stage}.MailQueueArn}
+    url: ${cf:aws-notificaciones-${self:provider.stage}.MailQueueUrl}
   bundle:
     linting: false
